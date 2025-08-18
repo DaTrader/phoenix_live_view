@@ -25,6 +25,7 @@ import ElementRef from "./element_ref"
 import DOM from "./dom"
 import DOMPostMorphRestorer from "./dom_post_morph_restorer"
 import morphdom from "morphdom"
+import {sha256JSON} from "./my_util";
 
 export default class DOMPatch {
   constructor(view, container, id, html, streams, targetCID, opts={}){
@@ -71,7 +72,11 @@ export default class DOMPatch {
 
   perform(isJoinPatch){
     let {view, liveSocket, html, container, targetContainer} = this
-    if(this.isCIDPatch() && !targetContainer){ return }
+
+    if(this.isCIDPatch() && !targetContainer){
+      console.debug( `[DOM patch] skipping CID diff`);
+      return
+    }
 
     let focused = liveSocket.getActiveElement()
     let {selectionStart, selectionEnd} = focused && DOM.hasSelectionRange(focused) ? focused : {}

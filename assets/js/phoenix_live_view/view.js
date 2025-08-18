@@ -1,3 +1,4 @@
+import { sha256JSON, formatDate } from "./my_util"
 import {
   BEFORE_UNLOAD_LOADER_TIMEOUT,
   CHECKABLE_INPUTS,
@@ -666,7 +667,12 @@ export default class View {
   }
 
   update(diff, events){
+    const hash = sha256JSON( diff);
+    console.debug( `[LV update] received diff sha256=${ hash}`);
+
     if(this.isJoinPending() || (this.liveSocket.hasPendingLink() && this.root.isMain())){
+      console.debug( `[LV update] queued diff sha256=${ hash}`);
+
       return this.pendingDiffs.push({diff, events})
     }
 
@@ -764,7 +770,12 @@ export default class View {
     // be silently dropped otherwise, as update would push it back to
     // pendingDiffs, but we clear it immediately after
     if(this.liveSocket.hasPendingLink() && this.root.isMain()){ return }
-    this.pendingDiffs.forEach(({diff, events}) => this.update(diff, events))
+    this.pendingDiffs.forEach(({diff, events}) => {
+      const hash = sha256JSON( diff);
+      console.debug( `[LV applyPendingUpdates] applying diff sha256=${ hash}`);
+
+      this.update(diff, events)
+    });
     this.pendingDiffs = []
     this.eachChild(child => child.applyPendingUpdates())
   }
