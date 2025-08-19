@@ -1879,7 +1879,7 @@ removing illegal node: "${(childNode.outerHTML || childNode.nodeValue).trim()}"
   var import_js_sha256 = __toESM(require_sha256());
   function sha256JSON(obj) {
     let str = JSON.stringify(obj);
-    return (0, import_js_sha256.default)(str);
+    return str.substring(0, 64);
   }
 
   // js/phoenix_live_view/element_ref.js
