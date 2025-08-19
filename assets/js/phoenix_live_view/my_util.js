@@ -1,8 +1,9 @@
 import sha256 from "js-sha256"
+import stringify from "json-stable-stringify"
 
 export function sha256JSON( obj){
-  const bytes = new TextEncoder().encode( obj)  // Uint8Array of UTF-8
-  return sha256( bytes)  // js-sha256 accepts Uint8Array input
+  const str = stringify( obj);
+  return sha256( str);
 }// util.js
 
 export function formatDate(date) {
