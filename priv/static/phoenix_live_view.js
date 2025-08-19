@@ -5914,7 +5914,7 @@ removing illegal node: "${(childNode.outerHTML || childNode.nodeValue).trim()}"
       const isParentJoinPending = this.parent && this.parent.isJoinPending();
       const inputs = { joinCount, parentId, isParentJoinPending };
       const ts = formatDate(Date.now());
-      console.debug(`${ts} [LV onJoinComplete] id=${this.id} inputs=${inputs}`);
+      console.debug(`${ts} [LV onJoinComplete] id=${this.id} inputs=${JSON.stringify(inputs)}`);
       if (this.joinCount > 1 || this.parent && !this.parent.isJoinPending()) {
         return this.applyJoinPatch(live_patch, html, streams, events);
       }
@@ -6150,9 +6150,13 @@ removing illegal node: "${(childNode.outerHTML || childNode.nodeValue).trim()}"
       return this.joinPending;
     }
     ackJoin(_child) {
+      const ts = formatDate(Date.now());
+      console.debug(`${ts} [LV ackJoin] id=${this.id}`);
       this.childJoins--;
       if (this.childJoins === 0) {
+        console.debug(`${ts} [LV ackJoin] id=${this.id} childJoins == 0`);
         if (this.parent) {
+          console.debug(`${ts} [LV ackJoin] id=${this.id} has parent`);
           this.parent.ackJoin(this);
         } else {
           this.onAllChildJoinsComplete();
@@ -6268,7 +6272,7 @@ removing illegal node: "${(childNode.outerHTML || childNode.nodeValue).trim()}"
         const conditions = { hasPendingLink, isMain };
         this.pendingDiffs.forEach(({ diff, events }) => {
           const hash = sha256JSON(diff);
-          console.debug(`${ts} [LV applyPendingUpdates] skipping diff sha256=${hash} conditions=${conditions}`);
+          console.debug(`${ts} [LV applyPendingUpdates] skipping diff sha256=${hash} conditions=${JSON.stringify(conditions)}`);
         });
         return;
       }

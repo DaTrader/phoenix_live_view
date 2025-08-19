@@ -381,7 +381,7 @@ export default class View {
     const isParentJoinPending = this.parent && this.parent.isJoinPending();
     const inputs = { joinCount, parentId, isParentJoinPending};
     const ts = formatDate( Date.now());
-    console.debug( `${ ts} [LV onJoinComplete] id=${ this.id} inputs=${ inputs}`);
+    console.debug( `${ ts} [LV onJoinComplete] id=${ this.id} inputs=${ JSON.stringify( inputs)}`);
 
     // In order to provide a better experience, we want to join
     // all LiveViews first and only then apply their patches.
@@ -664,10 +664,14 @@ export default class View {
   isJoinPending(){ return this.joinPending }
 
   ackJoin(_child){
+    const ts = formatDate( Date.now());
+    console.debug( `${ ts} [LV ackJoin] id=${ this.id}`);
     this.childJoins--
 
     if(this.childJoins === 0){
+      console.debug( `${ ts} [LV ackJoin] id=${ this.id} childJoins == 0`);
       if(this.parent){
+        console.debug( `${ ts} [LV ackJoin] id=${ this.id} has parent`);
         this.parent.ackJoin(this)
       } else {
         this.onAllChildJoinsComplete()
@@ -810,7 +814,7 @@ export default class View {
 
       this.pendingDiffs.forEach(({diff, events}) => {
         const hash = sha256JSON( diff);
-        console.debug( `${ ts} [LV applyPendingUpdates] skipping diff sha256=${ hash} conditions=${ conditions}`);
+        console.debug( `${ ts} [LV applyPendingUpdates] skipping diff sha256=${ hash} conditions=${ JSON.stringify( conditions)}`);
       });
       return
     }
