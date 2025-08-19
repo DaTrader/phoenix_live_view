@@ -6246,12 +6246,18 @@ var View = class _View {
       });
       return;
     }
+    const newPendingDiffs = [];
+    let lastDiffCount = this.pendingDiffs.length;
     this.pendingDiffs.forEach(({ diff, events }) => {
       const hash = sha256JSON(diff);
       console.debug(`${ts} [LV applyPendingUpdates] id=${this.id} applying diff sha256=${hash}`);
-      this.update(diff, events);
+      const newDiffCount = this.update(diff, events);
+      if (newDiffCount && newDiffCount > lastDiffCount) {
+        lastDiffCount = newDiffCount;
+        newPendingDiffs.push({ diff, events });
+      }
     });
-    this.pendingDiffs = [];
+    this.pendingDiffs = newPendingDiffs;
     this.eachChild((child) => child.applyPendingUpdates());
   }
   eachChild(callback) {
