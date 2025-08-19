@@ -1,10 +1,8 @@
 import sha256 from "js-sha256"
 
 export function sha256JSON(obj){
-  // const bytes = new TextEncoder().encode(obj)  // Uint8Array of UTF-8
-  // return sha256(bytes)  // js-sha256 accepts Uint8Array input
-
-  return JSON.stringify( obj).substring( 0, 64);
+  const bytes = new TextEncoder().encode(obj)  // Uint8Array of UTF-8
+  return sha256(bytes)  // js-sha256 accepts Uint8Array input
 }// util.js
 
 export function formatDate(date) {
