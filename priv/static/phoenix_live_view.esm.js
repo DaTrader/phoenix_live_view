@@ -6234,19 +6234,21 @@ var View = class _View {
   }
   applyPendingUpdates() {
     const ts = formatDate(Date.now());
+    const hasPendingLink = this.liveSocket.hasPendingLink();
+    const pendingDiffsCount = this.pendingDiffs.length;
+    const isMain = this.root.isMain();
+    const conditions = { hasPendingLink, isMain, pendingDiffsCount };
+    console.debug(`${ts} [LV applyPendingUpdates] id=${this.id} conditions=${JSON.stringify(conditions)}`);
     if (this.liveSocket.hasPendingLink() && this.root.isMain()) {
-      const hasPendingLink = this.liveSocket.hasPendingLink();
-      const isMain = this.root.isMain();
-      const conditions = { hasPendingLink, isMain };
       this.pendingDiffs.forEach(({ diff, events }) => {
         const hash = sha256JSON(diff);
-        console.debug(`${ts} [LV applyPendingUpdates] skipping diff sha256=${hash} conditions=${JSON.stringify(conditions)}`);
+        console.debug(`${ts} [LV applyPendingUpdates] id=${this.id} skipping diff sha256=${hash}`);
       });
       return;
     }
     this.pendingDiffs.forEach(({ diff, events }) => {
       const hash = sha256JSON(diff);
-      console.debug(`${ts} [LV applyPendingUpdates] applying diff sha256=${hash}`);
+      console.debug(`${ts} [LV applyPendingUpdates] id=${this.id} applying diff sha256=${hash}`);
       this.update(diff, events);
     });
     this.pendingDiffs = [];
