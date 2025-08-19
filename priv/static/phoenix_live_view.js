@@ -3536,6 +3536,14 @@ removing illegal node: "${(childNode.outerHTML || childNode.nodeValue).trim()}"
     const str = (0, import_json_stable_stringify.default)(obj);
     return (0, import_js_sha256.default)(str);
   }
+  function formatDate(date) {
+    date = new Date(date);
+    const hours = String(date.getUTCHours()).padStart(2, "0");
+    const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+    const seconds = String(date.getUTCSeconds()).padStart(2, "0");
+    const milliseconds = String(date.getUTCMilliseconds()).padStart(3, "0");
+    return `${hours}:${minutes}:${seconds}.${milliseconds}`;
+  }
 
   // js/phoenix_live_view/element_ref.js
   var ElementRef = class {
@@ -6150,10 +6158,15 @@ removing illegal node: "${(childNode.outerHTML || childNode.nodeValue).trim()}"
       });
     }
     update(diff, events) {
+      const ts = formatDate(Date.now());
       const hash = sha256JSON(diff);
-      console.debug(`[LV update] received diff sha256=${hash}`);
-      if (this.isJoinPending() || this.liveSocket.hasPendingLink() && this.root.isMain()) {
-        console.debug(`[LV update] queued diff sha256=${hash}`);
+      console.debug(`${ts} [LV update] received diff sha256=${hash}`);
+      const isPending = this.isJoinPending();
+      const hasLink = this.liveSocket.hasPendingLink();
+      const isMain = this.root.isMain();
+      const conditions = { isPending, hasLink, isMain };
+      if (isPending || hasLink && isMain) {
+        console.debug(`${ts} [LV update] queued diff sha256=${hash} cond=${JSON.stringify(conditions)}`);
         return this.pendingDiffs.push({ diff, events });
       }
       this.rendered.mergeDiff(diff);

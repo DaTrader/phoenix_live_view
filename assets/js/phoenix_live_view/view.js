@@ -667,11 +667,17 @@ export default class View {
   }
 
   update(diff, events){
+    const ts = formatDate( Date.now())
     const hash = sha256JSON( diff);
-    console.debug( `[LV update] received diff sha256=${ hash}`);
+    console.debug( `${ ts} [LV update] received diff sha256=${ hash}`);
 
-    if(this.isJoinPending() || (this.liveSocket.hasPendingLink() && this.root.isMain())){
-      console.debug( `[LV update] queued diff sha256=${ hash}`);
+    const isPending = this.isJoinPending();
+    const hasLink = this.liveSocket.hasPendingLink();
+    const isMain = this.root.isMain();
+    const conditions = { isPending, hasLink, isMain};
+
+    if(isPending || (hasLink && isMain)){
+      console.debug( `${ ts} [LV update] queued diff sha256=${ hash} cond=${ JSON.stringify( conditions) }`);
 
       return this.pendingDiffs.push({diff, events})
     }
