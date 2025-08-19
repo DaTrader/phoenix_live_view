@@ -333,6 +333,10 @@ export default class View {
     this.childJoins = 0
     this.joinPending = true
     this.flash = null
+
+    const ts = formatDate( Date.now());
+    console.debug( `${ ts} [LV onJoin] id=${ this.id} setting joinPending = true`);
+
     if(this.root === this){
       this.formsForRecovery = this.getFormsForRecovery()
     }
@@ -372,6 +376,13 @@ export default class View {
   }
 
   onJoinComplete({live_patch}, html, streams, events){
+    const joinCount = this.joinCount;
+    const parentId = this.parent && this.parent.id;
+    const isParentJoinPending = this.parent && this.parent.isJoinPending();
+    const inputs = { joinCount, parentId, isParentJoinPending};
+    const ts = formatDate( Date.now());
+    console.debug( `${ ts} [LV onJoinComplete] id=${ this.id} inputs=${ inputs}`);
+
     // In order to provide a better experience, we want to join
     // all LiveViews first and only then apply their patches.
     if(this.joinCount > 1 || (this.parent && !this.parent.isJoinPending())){
@@ -389,18 +400,26 @@ export default class View {
       // set PHX_ROOT_ID to prevent events from being dispatched to the root view
       // while the child join is still pending
       if(fromEl){ fromEl.setAttribute(PHX_ROOT_ID, this.root.id) }
+
+      console.debug( `${ ts} [LV onJoinComplete] id=${ this.id} joinChild`);
       return this.joinChild(toEl)
     })
 
     if(newChildren.length === 0){
       if(this.parent){
+        console.debug( `${ ts} [LV onJoinComplete] id=${ this.id} children == 0 && has parent -> push applyJointPatch`);
+
         this.root.pendingJoinOps.push([this, () => this.applyJoinPatch(live_patch, html, streams, events)])
         this.parent.ackJoin(this)
       } else {
+        console.debug( `${ ts} [LV onJoinComplete] id=${ this.id} children == 0 && no parent`);
+
         this.onAllChildJoinsComplete()
         this.applyJoinPatch(live_patch, html, streams, events)
       }
     } else {
+      console.debug( `${ ts} [LV onJoinComplete] id=${ this.id} children != 0 -> push applyJointPatch`);
+
       this.root.pendingJoinOps.push([this, () => this.applyJoinPatch(live_patch, html, streams, events)])
     }
   }
@@ -444,6 +463,10 @@ export default class View {
     this.execNewMounted()
 
     this.joinPending = false
+
+    const ts = formatDate( Date.now());
+    console.debug( `${ ts} [LV applyJoinPatch] id=${ this.id} resetting joinPending = false`);
+
     this.liveSocket.dispatchEvents(events)
     this.applyPendingUpdates()
 
@@ -653,6 +676,9 @@ export default class View {
   }
 
   onAllChildJoinsComplete(){
+    const ts = formatDate( Date.now());
+    console.debug( `${ ts} [LV onAllChildJoinsComplete] id=${ this.id}`);
+
     // we can clear pending form recoveries now that we've joined.
     // They either all resolved or were abandoned
     this.pendingForms.clear()
@@ -672,11 +698,11 @@ export default class View {
     console.debug( `${ ts} [LV update] received diff sha256=${ hash}`);
 
     const isPending = this.isJoinPending();
-    const hasLink = this.liveSocket.hasPendingLink();
+    const hasPendingLink = this.liveSocket.hasPendingLink();
     const isMain = this.root.isMain();
-    const conditions = { isPending, hasLink, isMain};
+    const conditions = { isPending, hasPendingLink, isMain};
 
-    if(isPending || (hasLink && isMain)){
+    if(isPending || (hasPendingLink && isMain)){
       console.debug( `${ ts} [LV update] queued diff sha256=${ hash} cond=${ JSON.stringify( conditions) }`);
 
       return this.pendingDiffs.push({diff, events})
@@ -770,15 +796,27 @@ export default class View {
   }
 
   applyPendingUpdates(){
+    const ts = formatDate( Date.now());
+
     // prevent race conditions where we might still be pending a new
     // navigation after applying the current one;
     // if we call update and a pendingDiff is not applied, it would
     // be silently dropped otherwise, as update would push it back to
     // pendingDiffs, but we clear it immediately after
-    if(this.liveSocket.hasPendingLink() && this.root.isMain()){ return }
+    if(this.liveSocket.hasPendingLink() && this.root.isMain()){
+      const hasPendingLink = this.liveSocket.hasPendingLink();
+      const isMain = this.root.isMain();
+      const conditions = { hasPendingLink, isMain};
+
+      this.pendingDiffs.forEach(({diff, events}) => {
+        const hash = sha256JSON( diff);
+        console.debug( `${ ts} [LV applyPendingUpdates] skipping diff sha256=${ hash} conditions=${ conditions}`);
+      });
+      return
+    }
     this.pendingDiffs.forEach(({diff, events}) => {
       const hash = sha256JSON( diff);
-      console.debug( `[LV applyPendingUpdates] applying diff sha256=${ hash}`);
+      console.debug( `${ ts} [LV applyPendingUpdates] applying diff sha256=${ hash}`);
 
       this.update(diff, events)
     });
