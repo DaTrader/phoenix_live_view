@@ -2,7 +2,8 @@ import sha256 from "js-sha256"
 
 export function sha256JSON(obj){
   let str = JSON.stringify(obj)
-  return sha256(str)   // returns a 64-char hex string
+  return str.substring( 0, 64);
+//  return sha256(str)   // returns a 64-char hex string
 }// util.js
 
 export function formatDate(date) {
