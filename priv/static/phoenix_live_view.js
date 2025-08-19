@@ -6288,6 +6288,8 @@ removing illegal node: "${(childNode.outerHTML || childNode.nodeValue).trim()}"
           lastDiffCount = newDiffCount;
           newPendingDiffs.push({ diff, events });
         }
+        const state = { lastDiffCount, newDiffCount, remainingCount: newPendingDiffs.length };
+        console.debug(`${ts} [LV applyPendingUpdates] id=${this.id} after update sha256=${hash} state=${JSON.stringify(state)}`);
       });
       this.pendingDiffs = newPendingDiffs;
       this.eachChild((child) => child.applyPendingUpdates());
