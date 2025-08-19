@@ -1878,8 +1878,7 @@ removing illegal node: "${(childNode.outerHTML || childNode.nodeValue).trim()}"
   // js/phoenix_live_view/my_util.js
   var import_js_sha256 = __toESM(require_sha256());
   function sha256JSON(obj) {
-    const bytes = new TextEncoder().encode(obj);
-    return (0, import_js_sha256.default)(bytes);
+    return JSON.stringify(obj).substring(0, 64);
   }
 
   // js/phoenix_live_view/element_ref.js
