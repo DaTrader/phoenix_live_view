@@ -1,4 +1,4 @@
-import sha256 from "./sha256"
+import sha256 from "js-sha256"
 
 export function sha256JSON(obj){
   let str = JSON.stringify(obj)
